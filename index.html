@@ -1,1000 +1,509 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Productive Tool - Compress Images</title>
-        <meta
-            name="description"
-            content="Compress your images quickly and efficiently with our free online tool. Supports JPG, PNG, WEBP formats with adjustable quality settings."
-        />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compress Optimizer - Reduce Image Size Without Losing Quality</title>
+    <meta name="description" content="Free online image compression tool. Reduce JPG, PNG, and WEBP file sizes by up to 90% without losing quality. No upload required - everything happens in your browser.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <style>
+        :root {
+            --gradient-from: hsl(272, 95%, 36%);
+            --gradient-to: hsl(333, 100%, 66%);
+        }
 
-        <!-- Tailwind CSS -->
-        <script src="https://cdn.tailwindcss.com"></script>
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--gradient-from) 0%, var(--gradient-to) 100%);
+        }
 
-        <!-- Lucide Icons -->
-        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+        .gradient-text {
+            background: linear-gradient(135deg, var(--gradient-from) 0%, var(--gradient-to) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-        <!-- Browser Image Compression Library -->
-        <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, hsla(272, 95%, 36%, 0.1) 0%, transparent 50%),
+                              radial-gradient(circle at 75% 75%, hsla(333, 100%, 66%, 0.1) 0%, transparent 50%);
+        }
 
-        <!-- React and ReactDOM -->
-        <script
-            crossorigin
-            src="https://unpkg.com/react@18/umd/react.production.min.js"
-        ></script>
-        <script
-            crossorigin
-            src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
-        ></script>
-
-        <!-- Babel for JSX transformation -->
-        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-        <style>
-            :root {
-                --gradient-from: #6a0dad;
-                --gradient-to: #ff6b9d;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
-
-            .gradient-bg {
-                background: linear-gradient(
-                    135deg,
-                    var(--gradient-from) 0%,
-                    var(--gradient-to) 100%
-                );
-            }
-
-            .gradient-text {
-                background: linear-gradient(
-                    135deg,
-                    var(--gradient-from) 0%,
-                    var(--gradient-to) 100%
-                );
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            }
-
-            .drag-over {
-                border-color: var(--gradient-from);
-                background-color: rgba(106, 13, 173, 0.05);
-            }
-
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                }
-                to {
-                    opacity: 1;
-                }
-            }
-
-            @keyframes slideUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-
-            .animate-fade-in {
-                animation: fadeIn 0.5s ease-in-out;
-            }
-
-            .animate-slide-up {
-                animation: slideUp 0.3s ease-out;
-            }
-
-            .animate-spin {
-                animation: spin 1s linear infinite;
-            }
-
-            @keyframes spin {
-                from {
-                    transform: rotate(0deg);
-                }
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-
-            .slider {
-                -webkit-appearance: none;
-                appearance: none;
-                height: 8px;
-                border-radius: 5px;
-                background: #ddd;
-                outline: none;
-                opacity: 0.7;
-                transition: opacity 0.2s;
-            }
-
-            .slider:hover {
+            to {
                 opacity: 1;
+                transform: translateY(0);
             }
+        }
 
-            .slider::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                appearance: none;
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                background: var(--gradient-from);
-                cursor: pointer;
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
             }
-
-            .slider::-moz-range-thumb {
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                background: var(--gradient-from);
-                cursor: pointer;
-                border: none;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
+        }
 
-            .progress-bar {
-                background: linear-gradient(
-                    135deg,
-                    var(--gradient-from) 0%,
-                    var(--gradient-to) 100%
-                );
-            }
-        </style>
-    </head>
-    <body class="bg-gray-50 font-sans">
-        <div id="root"></div>
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
 
-        <script type="text/babel">
-            const { useState, useEffect, useRef, useCallback } = React;
+        .animate-slide-up {
+            animation: slideUp 0.8s ease-out;
+        }
 
-            // Utility functions
-            const formatFileSize = (bytes) => {
-                if (bytes === 0) return "0 Bytes";
-                const k = 1024;
-                const sizes = ["Bytes", "KB", "MB", "GB"];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return (
-                    parseFloat((bytes / Math.pow(k, i)).toFixed(2)) +
-                    " " +
-                    sizes[i]
-                );
-            };
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
 
-            const compressImage = async (file, quality) => {
-                try {
-                    const options = {
-                        maxSizeMB: 10,
-                        maxWidthOrHeight: 1920,
-                        useWebWorker: true,
-                        quality: quality,
-                    };
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px hsla(0, 0%, 0%, 0.1);
+        }
 
-                    const compressedFile = await imageCompression(
-                        file,
-                        options,
-                    );
+        .cta-button {
+            background: linear-gradient(135deg, var(--gradient-from) 0%, var(--gradient-to) 100%);
+            transition: all 0.3s ease;
+        }
 
-                    const originalSize = file.size;
-                    const compressedSize = compressedFile.size;
-                    const savedBytes = originalSize - compressedSize;
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px hsla(272, 95%, 36%, 0.3);
+        }
 
-                    return {
-                        originalFile: file,
-                        compressedFile,
-                        originalSize,
-                        compressedSize,
-                        savedBytes,
-                    };
-                } catch (error) {
-                    console.error("Error compressing image:", error);
-                    throw new Error(`Failed to compress ${file.name}`);
-                }
-            };
+        .stat-number {
+            background: linear-gradient(135deg, var(--gradient-from) 0%, var(--gradient-to) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-white font-sans antialiased">
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="#" class="flex items-center">
+                    <i data-lucide="image" class="h-8 w-8 text-blue-600 mr-3"></i>
+                    <span class="text-xl font-bold gradient-text">Compress Optimizer</span>
+                </a>
+                
+                <div class="hidden md:flex space-x-8">
+                    <a href="#features" class="text-gray-600 hover:text-blue-600 transition-colors">Features</a>
+                    <a href="#how-it-works" class="text-gray-600 hover:text-blue-600 transition-colors">How It Works</a>
+                    <a href="#benefits" class="text-gray-600 hover:text-blue-600 transition-colors">Benefits</a>
+                </div>
+                
+                <a href="/compress" class="cta-button text-white px-6 py-2 rounded-md hover:opacity-90 inline-flex items-center">
+                    Start Compressing
+                </a>
+            </div>
+        </div>
+    </nav>
 
-            // Components
-            const Button = ({
-                children,
-                onClick,
-                disabled,
-                className = "",
-                variant = "default",
-                size = "default",
-            }) => {
-                const baseClasses =
-                    "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
-
-                const variants = {
-                    default:
-                        "bg-primary text-primary-foreground hover:bg-primary/90",
-                    outline:
-                        "border border-input hover:bg-accent hover:text-accent-foreground",
-                };
-
-                const sizes = {
-                    default: "h-10 py-2 px-4",
-                    sm: "h-9 px-3",
-                    lg: "h-11 px-8",
-                };
-
-                return (
-                    <button
-                        className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
-                        onClick={onClick}
-                        disabled={disabled}
-                    >
-                        {children}
+    <!-- Hero Section -->
+    <section class="relative pt-32 pb-20 hero-pattern overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center animate-fade-in">
+                <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6">
+                    Compress Images
+                    <span class="gradient-text block">Without Quality Loss</span>
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed">
+                    Reduce your image file sizes by up to 90% while maintaining crystal-clear quality. 
+                    Fast, secure, and completely free - no uploads required.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+                    <a href="/compress" class="cta-button text-white px-8 py-4 text-lg rounded-md inline-flex items-center">
+                        <i data-lucide="upload" class="mr-2 h-5 w-5"></i>
+                        Start Compressing Now
+                    </a>
+                    
+                    <button class="border-2 border-gray-300 text-gray-700 px-8 py-4 text-lg hover:border-blue-600 hover:text-blue-600 rounded-md inline-flex items-center transition-colors">
+                        <i data-lucide="play" class="mr-2 h-5 w-5"></i>
+                        Watch Demo
                     </button>
-                );
-            };
-
-            const Card = ({ children, className = "" }) => (
-                <div
-                    className={`rounded-lg border bg-card text-card-foreground shadow-sm ${className}`}
-                >
-                    {children}
                 </div>
-            );
-
-            const CardContent = ({ children, className = "" }) => (
-                <div className={`p-6 ${className}`}>{children}</div>
-            );
-
-            const Progress = ({ value, className = "" }) => (
-                <div
-                    className={`relative h-4 w-full overflow-hidden rounded-full bg-secondary ${className}`}
-                >
-                    <div
-                        className="h-full w-full flex-1 progress-bar transition-all"
-                        style={{
-                            transform: `translateX(-${100 - (value || 0)}%)`,
-                        }}
-                    />
-                </div>
-            );
-
-            const Toast = ({ message, type = "success", onClose }) => (
-                <div
-                    className={`fixed top-4 right-4 p-4 rounded-md shadow-lg z-50 ${
-                        type === "success"
-                            ? "bg-green-500 text-white"
-                            : "bg-red-500 text-white"
-                    }`}
-                >
-                    <div className="flex items-center justify-between">
-                        <span>{message}</span>
-                        <button
-                            onClick={onClose}
-                            className="ml-4 text-white hover:text-gray-200"
-                        >
-                            ×
-                        </button>
+                
+                <!-- Demo Preview -->
+                <div class="relative max-w-5xl mx-auto animate-slide-up">
+                    <div class="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+                        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                                <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                                <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                                <div class="ml-4 text-sm text-gray-500">compress-optimizer.com</div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-8">
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+                                <i data-lucide="upload" class="h-12 w-12 text-gray-400 mx-auto mb-4"></i>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Drop your images here</h3>
+                                <p class="text-gray-500">Support for JPG, PNG, WEBP • Up to 10MB per file</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            );
+            </div>
+        </div>
+    </section>
 
-            const ImageUpload = ({ onFilesSelected, selectedFiles }) => {
-                const [isDragOver, setIsDragOver] = useState(false);
-                const [toast, setToast] = useState(null);
+    <!-- Stats Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="animate-fade-in">
+                    <div class="stat-number text-5xl font-bold mb-2">2M+</div>
+                    <div class="text-gray-600 text-lg">Images Compressed</div>
+                </div>
+                
+                <div class="animate-fade-in">
+                    <div class="stat-number text-5xl font-bold mb-2">90%</div>
+                    <div class="text-gray-600 text-lg">Average Size Reduction</div>
+                </div>
+                
+                <div class="animate-fade-in">
+                    <div class="stat-number text-5xl font-bold mb-2">100%</div>
+                    <div class="text-gray-600 text-lg">Privacy Protected</div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                const showToast = (message, type = "success") => {
-                    setToast({ message, type });
-                    setTimeout(() => setToast(null), 3000);
-                };
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                    Powerful Features for
+                    <span class="gradient-text"> Perfect Results</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Everything you need to optimize your images quickly and efficiently
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="feature-card bg-white rounded-xl p-8 shadow-lg border border-gray-100">
+                    <div class="gradient-bg w-12 h-12 rounded-lg flex items-center justify-center mb-6">
+                        <i data-lucide="upload" class="h-6 w-6 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Drag & Drop Upload</h3>
+                    <p class="text-gray-600">
+                        Simply drag your images into the browser or click to select multiple files at once. No complicated setup required.
+                    </p>
+                </div>
+                
+                <div class="feature-card bg-white rounded-xl p-8 shadow-lg border border-gray-100">
+                    <div class="gradient-bg w-12 h-12 rounded-lg flex items-center justify-center mb-6">
+                        <i data-lucide="sliders" class="h-6 w-6 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Quality Control</h3>
+                    <p class="text-gray-600">
+                        Fine-tune compression levels with our intuitive slider. Balance file size and quality to meet your exact needs.
+                    </p>
+                </div>
+                
+                <div class="feature-card bg-white rounded-xl p-8 shadow-lg border border-gray-100">
+                    <div class="gradient-bg w-12 h-12 rounded-lg flex items-center justify-center mb-6">
+                        <i data-lucide="zap" class="h-6 w-6 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Lightning Fast</h3>
+                    <p class="text-gray-600">
+                        Process multiple images simultaneously with web workers. No waiting around - get your compressed images instantly.
+                    </p>
+                </div>
+                
+                <div class="feature-card bg-white rounded-xl p-8 shadow-lg border border-gray-100">
+                    <div class="gradient-bg w-12 h-12 rounded-lg flex items-center justify-center mb-6">
+                        <i data-lucide="shield" class="h-6 w-6 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">100% Private</h3>
+                    <p class="text-gray-600">
+                        Your images never leave your device. All compression happens locally in your browser for complete privacy.
+                    </p>
+                </div>
+                
+                <div class="feature-card bg-white rounded-xl p-8 shadow-lg border border-gray-100">
+                    <div class="gradient-bg w-12 h-12 rounded-lg flex items-center justify-center mb-6">
+                        <i data-lucide="image" class="h-6 w-6 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Multiple Formats</h3>
+                    <p class="text-gray-600">
+                        Support for JPG, PNG, and WEBP formats. Optimize any image type with the same high-quality results.
+                    </p>
+                </div>
+                
+                <div class="feature-card bg-white rounded-xl p-8 shadow-lg border border-gray-100">
+                    <div class="gradient-bg w-12 h-12 rounded-lg flex items-center justify-center mb-6">
+                        <i data-lucide="download" class="h-6 w-6 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Batch Download</h3>
+                    <p class="text-gray-600">
+                        Download individual images or get all your compressed files in a convenient ZIP archive with one click.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                const validateFiles = (files) => {
-                    const validFiles = [];
-                    const fileArray = Array.from(files);
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                    How It Works
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Three simple steps to optimize your images
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="gradient-bg w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-white text-2xl font-bold">1</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Upload Images</h3>
+                    <p class="text-gray-600">
+                        Drag and drop your images or click to select files from your device. Multiple files supported.
+                    </p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="gradient-bg w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-white text-2xl font-bold">2</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Adjust Settings</h3>
+                    <p class="text-gray-600">
+                        Fine-tune compression quality with our slider. See real-time previews of size reduction.
+                    </p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="gradient-bg w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-white text-2xl font-bold">3</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Download Results</h3>
+                    <p class="text-gray-600">
+                        Download your optimized images individually or as a ZIP file. Keep originals if needed.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                    for (const file of fileArray) {
-                        if (!file.type.startsWith("image/")) {
-                            showToast(
-                                `${file.name} is not a valid image file`,
-                                "error",
-                            );
-                            continue;
-                        }
-
-                        if (file.size > 10 * 1024 * 1024) {
-                            showToast(
-                                `${file.name} exceeds the 10MB limit`,
-                                "error",
-                            );
-                            continue;
-                        }
-
-                        validFiles.push(file);
-                    }
-
-                    return validFiles;
-                };
-
-                const handleDrop = useCallback(
-                    (e) => {
-                        e.preventDefault();
-                        setIsDragOver(false);
-
-                        const files = validateFiles(e.dataTransfer.files);
-                        if (files.length > 0) {
-                            onFilesSelected([...selectedFiles, ...files]);
-                        }
-                    },
-                    [selectedFiles, onFilesSelected],
-                );
-
-                const handleDragOver = useCallback((e) => {
-                    e.preventDefault();
-                    setIsDragOver(true);
-                }, []);
-
-                const handleDragLeave = useCallback((e) => {
-                    e.preventDefault();
-                    setIsDragOver(false);
-                }, []);
-
-                const handleClick = () => {
-                    const input = document.createElement("input");
-                    input.type = "file";
-                    input.multiple = true;
-                    input.accept = "image/*";
-                    input.onchange = (e) => {
-                        const files = validateFiles(e.target.files);
-                        if (files.length > 0) {
-                            onFilesSelected([...selectedFiles, ...files]);
-                        }
-                    };
-                    input.click();
-                };
-
-                return (
-                    <>
-                        {toast && (
-                            <Toast
-                                message={toast.message}
-                                type={toast.type}
-                                onClose={() => setToast(null)}
-                            />
-                        )}
-                        <Card>
-                            <CardContent className="p-8">
-                                <div className="text-center mb-6">
-                                    <h2 className="text-3xl font-bold gradient-text mb-2">
-                                        Upload Your Images
-                                    </h2>
-                                    <p className="text-gray-600">
-                                        Drag and drop your images or click to
-                                        browse. Supports JPG, PNG, WEBP formats.
-                                    </p>
-                                </div>
-
-                                <div
-                                    onDrop={handleDrop}
-                                    onDragOver={handleDragOver}
-                                    onDragLeave={handleDragLeave}
-                                    onClick={handleClick}
-                                    className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-300 ${
-                                        isDragOver
-                                            ? "drag-over"
-                                            : "border-gray-300 hover:border-purple-500 hover:bg-purple-50"
-                                    }`}
-                                >
-                                    {selectedFiles.length === 0 ? (
-                                        <>
-                                            <div className="mb-4">
-                                                <lucide.Upload
-                                                    className="mx-auto text-6xl text-gray-400 mb-4"
-                                                    size={64}
-                                                />
-                                            </div>
-                                            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                                                Drop your images here
-                                            </h3>
-                                            <p className="text-gray-500 mb-4">
-                                                or click to browse from your
-                                                device
-                                            </p>
-                                            <Button className="gradient-bg hover:opacity-90">
-                                                <lucide.Upload
-                                                    className="mr-2"
-                                                    size={16}
-                                                />
-                                                Browse Files
-                                            </Button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="mb-4">
-                                                <lucide.Check
-                                                    className="mx-auto text-4xl text-green-500 mb-4"
-                                                    size={48}
-                                                />
-                                            </div>
-                                            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                                                {selectedFiles.length} file
-                                                {selectedFiles.length !== 1
-                                                    ? "s"
-                                                    : ""}{" "}
-                                                selected
-                                            </h3>
-                                            <p className="text-gray-500 mb-4">
-                                                Ready for compression
-                                            </p>
-                                            <Button variant="outline">
-                                                <lucide.Plus
-                                                    className="mr-2"
-                                                    size={16}
-                                                />
-                                                Add More Files
-                                            </Button>
-                                        </>
-                                    )}
-                                </div>
-
-                                <div className="mt-4 flex flex-wrap justify-center gap-4 text-sm text-gray-500">
-                                    <span className="flex items-center">
-                                        <lucide.Check
-                                            className="text-green-500 mr-1"
-                                            size={12}
-                                        />{" "}
-                                        JPG
-                                    </span>
-                                    <span className="flex items-center">
-                                        <lucide.Check
-                                            className="text-green-500 mr-1"
-                                            size={12}
-                                        />{" "}
-                                        PNG
-                                    </span>
-                                    <span className="flex items-center">
-                                        <lucide.Check
-                                            className="text-green-500 mr-1"
-                                            size={12}
-                                        />{" "}
-                                        WEBP
-                                    </span>
-                                    <span className="flex items-center">
-                                        <lucide.Check
-                                            className="text-blue-500 mr-1"
-                                            size={12}
-                                        />{" "}
-                                        Max 10MB per file
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </>
-                );
-            };
-
-            const CompressionControls = ({
-                quality,
-                onQualityChange,
-                onCompress,
-                isProcessing,
-                fileCount,
-            }) => (
-                <Card>
-                    <CardContent className="p-6">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">
-                            Compression Settings
-                        </h3>
-                        <div className="grid md:grid-cols-2 gap-6">
+    <!-- Benefits Section -->
+    <section id="benefits" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                        Why Choose
+                        <span class="gradient-text"> Compress Optimizer?</span>
+                    </h2>
+                    
+                    <div class="space-y-8">
+                        <div class="flex items-start">
+                            <div class="gradient-bg w-8 h-8 rounded-full flex items-center justify-center mr-4 mt-1">
+                                <i data-lucide="check" class="h-4 w-4 text-white"></i>
+                            </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Compression Quality:{" "}
-                                    <span className="gradient-text font-bold">
-                                        {quality}%
-                                    </span>
-                                </label>
-                                <input
-                                    type="range"
-                                    min="10"
-                                    max="100"
-                                    value={quality}
-                                    onChange={(e) =>
-                                        onQualityChange(
-                                            parseInt(e.target.value),
-                                        )
-                                    }
-                                    className="slider w-full"
-                                />
-                                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>High Compression</span>
-                                    <span>Best Quality</span>
-                                </div>
-                            </div>
-                            <div className="flex items-end">
-                                <Button
-                                    onClick={onCompress}
-                                    disabled={isProcessing}
-                                    className="gradient-bg hover:opacity-90 w-full"
-                                >
-                                    {isProcessing ? (
-                                        <>
-                                            <lucide.Loader2
-                                                className="mr-2 animate-spin"
-                                                size={16}
-                                            />
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <lucide.Zap
-                                                className="mr-2"
-                                                size={16}
-                                            />
-                                            Compress {fileCount} Image
-                                            {fileCount !== 1 ? "s" : ""}
-                                        </>
-                                    )}
-                                </Button>
+                                <h3 class="text-xl font-semibold text-gray-900 mb-2">Faster Website Loading</h3>
+                                <p class="text-gray-600">Smaller image files mean faster page load times, better SEO rankings, and improved user experience.</p>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
-            );
-
-            const ProcessingItem = ({ file }) => {
-                const [progress, setProgress] = useState(0);
-                const [isComplete, setIsComplete] = useState(false);
-
-                useEffect(() => {
-                    const interval = setInterval(() => {
-                        setProgress((prev) => {
-                            if (prev >= 100) {
-                                setIsComplete(true);
-                                clearInterval(interval);
-                                return 100;
-                            }
-                            return prev + 10;
-                        });
-                    }, 200);
-
-                    return () => clearInterval(interval);
-                }, []);
-
-                return (
-                    <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                        {isComplete ? (
-                            <lucide.CheckCircle
-                                className="text-green-500"
-                                size={20}
-                            />
-                        ) : (
-                            <lucide.Loader2
-                                className="text-purple-600 animate-spin"
-                                size={20}
-                            />
-                        )}
-                        <div className="flex-1">
-                            <div className="font-medium text-gray-800">
-                                {file.name}
+                        
+                        <div class="flex items-start">
+                            <div class="gradient-bg w-8 h-8 rounded-full flex items-center justify-center mr-4 mt-1">
+                                <i data-lucide="check" class="h-4 w-4 text-white"></i>
                             </div>
-                            <div className="text-sm text-gray-500">
-                                {formatFileSize(file.size)}
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900 mb-2">Save Storage Space</h3>
+                                <p class="text-gray-600">Reduce storage costs and free up valuable disk space without compromising image quality.</p>
                             </div>
                         </div>
-                        <div className="flex-1">
-                            <Progress value={progress} />
-                            <div className="text-sm text-gray-500 mt-1">
-                                {isComplete ? "Complete" : `${progress}%`}
+                        
+                        <div class="flex items-start">
+                            <div class="gradient-bg w-8 h-8 rounded-full flex items-center justify-center mr-4 mt-1">
+                                <i data-lucide="check" class="h-4 w-4 text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900 mb-2">Better User Experience</h3>
+                                <p class="text-gray-600">Optimized images load faster on all devices, especially important for mobile users with limited bandwidth.</p>
                             </div>
                         </div>
                     </div>
-                );
-            };
-
-            const ImageComparison = ({ result, onDownload }) => {
-                const [originalUrl, setOriginalUrl] = useState("");
-                const [compressedUrl, setCompressedUrl] = useState("");
-
-                useEffect(() => {
-                    const originalObjectUrl = URL.createObjectURL(
-                        result.originalFile,
-                    );
-                    const compressedObjectUrl = URL.createObjectURL(
-                        result.compressedFile,
-                    );
-
-                    setOriginalUrl(originalObjectUrl);
-                    setCompressedUrl(compressedObjectUrl);
-
-                    return () => {
-                        URL.revokeObjectURL(originalObjectUrl);
-                        URL.revokeObjectURL(compressedObjectUrl);
-                    };
-                }, [result]);
-
-                const compressionRatio = (
-                    (result.savedBytes / result.originalSize) *
-                    100
-                ).toFixed(1);
-
-                return (
-                    <div className="bg-gray-50 rounded-xl p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-semibold text-gray-800">
-                                {result.originalFile.name}
-                            </h4>
-                            <Button
-                                onClick={onDownload}
-                                className="gradient-bg hover:opacity-90"
-                                size="sm"
-                            >
-                                <lucide.Download className="mr-1" size={16} />
-                                Download
-                            </Button>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                                <div className="bg-white rounded-lg p-4">
-                                    <h5 className="font-medium text-gray-700 mb-2">
-                                        Original
-                                    </h5>
-                                    <div className="w-full h-48 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
-                                        {originalUrl ? (
-                                            <img
-                                                src={originalUrl}
-                                                alt="Original"
-                                                className="max-w-full max-h-full object-contain"
-                                            />
-                                        ) : (
-                                            <lucide.Image
-                                                className="text-4xl text-gray-400"
-                                                size={48}
-                                            />
-                                        )}
+                </div>
+                
+                <div class="relative">
+                    <div class="bg-gray-50 rounded-xl p-8 shadow-lg">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6 text-center">Compression Results</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-white rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                        <i data-lucide="image" class="h-5 w-5 text-blue-600"></i>
                                     </div>
+                                    <span class="text-sm font-medium">photo1.jpg</span>
                                 </div>
-                                <div className="bg-white rounded-lg p-4">
-                                    <h5 className="font-medium text-gray-700 mb-2">
-                                        Compressed
-                                    </h5>
-                                    <div className="w-full h-48 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg flex items-center justify-center overflow-hidden">
-                                        {compressedUrl ? (
-                                            <img
-                                                src={compressedUrl}
-                                                alt="Compressed"
-                                                className="max-w-full max-h-full object-contain"
-                                            />
-                                        ) : (
-                                            <lucide.Image
-                                                className="text-4xl text-purple-600"
-                                                size={48}
-                                            />
-                                        )}
-                                    </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-500 line-through">2.4 MB</div>
+                                    <div class="text-sm font-semibold text-green-600">240 KB</div>
                                 </div>
                             </div>
-
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-white rounded-lg p-4 text-center">
-                                        <div className="text-2xl font-bold text-gray-800">
-                                            {formatFileSize(
-                                                result.originalSize,
-                                            )}
-                                        </div>
-                                        <div className="text-sm text-gray-500">
-                                            Original Size
-                                        </div>
+                            
+                            <div class="flex items-center justify-between p-4 bg-white rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                                        <i data-lucide="image" class="h-5 w-5 text-green-600"></i>
                                     </div>
-                                    <div className="bg-white rounded-lg p-4 text-center">
-                                        <div className="text-2xl font-bold gradient-text">
-                                            {formatFileSize(
-                                                result.compressedSize,
-                                            )}
-                                        </div>
-                                        <div className="text-sm text-gray-500">
-                                            Compressed Size
-                                        </div>
-                                    </div>
+                                    <span class="text-sm font-medium">image2.png</span>
                                 </div>
-
-                                <div className="bg-white rounded-lg p-4">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-sm text-gray-600">
-                                            Compression Ratio
-                                        </span>
-                                        <span className="font-bold gradient-text">
-                                            {compressionRatio}%
-                                        </span>
-                                    </div>
-                                    <Progress
-                                        value={parseFloat(compressionRatio)}
-                                    />
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-500 line-through">1.8 MB</div>
+                                    <div class="text-sm font-semibold text-green-600">180 KB</div>
                                 </div>
-
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                    <div className="flex items-center text-green-700">
-                                        <lucide.Leaf
-                                            className="mr-2"
-                                            size={16}
-                                        />
-                                        <span className="font-medium">
-                                            Space Saved:{" "}
-                                            {formatFileSize(result.savedBytes)}
-                                        </span>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-4 bg-white rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                                        <i data-lucide="image" class="h-5 w-5 text-purple-600"></i>
                                     </div>
+                                    <span class="text-sm font-medium">banner.webp</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-500 line-through">3.2 MB</div>
+                                    <div class="text-sm font-semibold text-green-600">320 KB</div>
                                 </div>
                             </div>
                         </div>
+                        
+                        <div class="mt-6 p-4 bg-green-50 rounded-lg text-center">
+                            <div class="text-2xl font-bold text-green-600">90% Smaller</div>
+                            <div class="text-sm text-green-700">Total space saved: 6.8 MB</div>
+                        </div>
                     </div>
-                );
-            };
+                </div>
+            </div>
+        </div>
+    </section>
 
-            // Main App Component
-            const App = () => {
-                const [selectedFiles, setSelectedFiles] = useState([]);
-                const [quality, setQuality] = useState(80);
-                const [isProcessing, setIsProcessing] = useState(false);
-                const [processingFiles, setProcessingFiles] = useState([]);
-                const [results, setResults] = useState([]);
-                const [totalCompressed, setTotalCompressed] = useState(0);
-                const [totalSaved, setTotalSaved] = useState(0);
-                const [toast, setToast] = useState(null);
+    <!-- CTA Section -->
+    <section class="py-20 gradient-bg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">
+                Ready to Optimize Your Images?
+            </h2>
+            <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+                Start compressing your images now and see the difference. Fast, free, and secure.
+            </p>
+            <a href="/compress" class="bg-white text-purple-600 px-8 py-4 text-lg font-semibold rounded-md hover:bg-gray-100 transition-colors inline-flex items-center">
+                <i data-lucide="upload" class="mr-2 h-5 w-5"></i>
+                Get Started Now
+            </a>
+        </div>
+    </section>
 
-                const showToast = (message, type = "success") => {
-                    setToast({ message, type });
-                    setTimeout(() => setToast(null), 3000);
-                };
-
-                const handleFilesSelected = (files) => {
-                    setSelectedFiles(files);
-                };
-
-                const startCompression = async () => {
-                    if (selectedFiles.length === 0 || isProcessing) return;
-
-                    setIsProcessing(true);
-                    setProcessingFiles([...selectedFiles]);
-                    setResults([]);
-
-                    try {
-                        const newResults = [];
-
-                        for (const file of selectedFiles) {
-                            try {
-                                const result = await compressImage(
-                                    file,
-                                    quality / 100,
-                                );
-                                newResults.push(result);
-
-                                setProcessingFiles((prev) =>
-                                    prev.filter((f) => f !== file),
-                                );
-                            } catch (error) {
-                                console.error(
-                                    `Error compressing ${file.name}:`,
-                                    error,
-                                );
-                                showToast(
-                                    `Failed to compress ${file.name}`,
-                                    "error",
-                                );
-                            }
-                        }
-
-                        setResults(newResults);
-                        updateStats(newResults);
-
-                        showToast(
-                            `Successfully compressed ${newResults.length} image${newResults.length !== 1 ? "s" : ""}`,
-                        );
-                    } catch (error) {
-                        console.error("Compression failed:", error);
-                        showToast("Compression process failed", "error");
-                    } finally {
-                        setIsProcessing(false);
-                        setProcessingFiles([]);
-                    }
-                };
-
-                const updateStats = (compressionResults) => {
-                    const totalImages = compressionResults.length;
-                    const totalSavedBytes = compressionResults.reduce(
-                        (sum, result) => sum + result.savedBytes,
-                        0,
-                    );
-
-                    setTotalCompressed(totalImages);
-                    setTotalSaved(totalSavedBytes);
-                };
-
-                const downloadImage = (result) => {
-                    const link = document.createElement("a");
-                    link.href = URL.createObjectURL(result.compressedFile);
-                    link.download = `compressed_${result.originalFile.name}`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
-                };
-
-                const downloadAll = () => {
-                    results.forEach((result) => downloadImage(result));
-                };
-
-                const reset = () => {
-                    setSelectedFiles([]);
-                    setResults([]);
-                    setProcessingFiles([]);
-                    setIsProcessing(false);
-                    setTotalCompressed(0);
-                    setTotalSaved(0);
-                };
-
-                return (
-                    <div className="min-h-screen bg-gray-50">
-                        {toast && (
-                            <Toast
-                                message={toast.message}
-                                type={toast.type}
-                                onClose={() => setToast(null)}
-                            />
-                        )}
-
-                        {/* Header */}
-                        <header className="gradient-bg text-white py-6 px-4 shadow-lg">
-                            <div className="max-w-6xl mx-auto">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                                            <lucide.Zap
-                                                className="text-white"
-                                                size={24}
-                                            />
-                                        </div>
-                                        <div>
-                                            <h1 className="text-2xl font-bold">
-                                                Productive Tool
-                                            </h1>
-                                            <p className="text-white/80 text-sm">
-                                                Compress Images
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="hidden md:flex items-center space-x-6">
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold">
-                                                {totalCompressed}
-                                            </div>
-                                            <div className="text-white/80 text-xs">
-                                                Images Compressed
-                                            </div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold">
-                                                {formatFileSize(totalSaved)}
-                                            </div>
-                                            <div className="text-white/80 text-xs">
-                                                Space Saved
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </header>
-
-                        <main className="max-w-6xl mx-auto px-4 py-8">
-                            {/* Upload Section */}
-                            <div className="mb-8 animate-fade-in">
-                                <ImageUpload
-                                    onFilesSelected={handleFilesSelected}
-                                    selectedFiles={selectedFiles}
-                                />
-                            </div>
-
-                            {/* Compression Controls */}
-                            {selectedFiles.length > 0 && (
-                                <div className="mb-8 animate-slide-up">
-                                    <CompressionControls
-                                        quality={quality}
-                                        onQualityChange={setQuality}
-                                        onCompress={startCompression}
-                                        isProcessing={isProcessing}
-                                        fileCount={selectedFiles.length}
-                                    />
-                                </div>
-                            )}
-
-                            {/* Processing Section */}
-                            {processingFiles.length > 0 && (
-                                <div className="mb-8 animate-slide-up">
-                                    <Card>
-                                        <CardContent className="p-6">
-                                            <h3 className="text-xl font-bold text-gray-800 mb-4">
-                                                Processing Images
-                                            </h3>
-                                            <div className="space-y-4">
-                                                {processingFiles.map(
-                                                    (file, index) => (
-                                                        <ProcessingItem
-                                                            key={`${file.name}-${index}`}
-                                                            file={file}
-                                                        />
-                                                    ),
-                                                )}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            )}
-
-                            {/* Results Section */}
-                            {results.length > 0 && (
-                                <div className="mb-8 animate-slide-up">
-                                    <Card>
-                                        <CardContent className="p-6">
-                                            <div className="flex items-center justify-between mb-6">
-                                                <h3 className="text-xl font-bold text-gray-800">
-                                                    Compression Results
-                                                </h3>
-                                                <div className="flex gap-3">
-                                                    <Button
-                                                        onClick={downloadAll}
-                                                        className="gradient-bg hover:opacity-90"
-                                                    >
-                                                        <lucide.Download
-                                                            className="mr-2"
-                                                            size={16}
-                                                        />
-                                                        Download All
-                                                    </Button>
-                                                    <Button
-                                                        onClick={reset}
-                                                        variant="outline"
-                                                    >
-                                                        <lucide.RotateCcw
-                                                            className="mr-2"
-                                                            size={16}
-                                                        />
-                                                        Start Over
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                            <div className="grid gap-6">
-                                                {results.map(
-                                                    (result, index) => (
-                                                        <ImageComparison
-                                                            key={`${result.originalFile.name}-${index}`}
-                                                            result={result}
-                                                            onDownload={() =>
-                                                                downloadImage(
-                                                                    result,
-                                                                )
-                                                            }
-                                                        />
-                                                    ),
-                                                )}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            )}
-                        </main>
-
-                        {/* Footer */}
-                        <footer className="bg-gray-800 text-white py-8 px-4 mt-16">
-                            <div className="max-w-6xl mx-auto text-center">
-                                <p className="text-gray-400">
-                                    &copy; 2024 Productive Tool. Made with ❤️
-                                    for better productivity.
-                                </p>
-                            </div>
-                        </footer>
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center mb-4">
+                        <i data-lucide="image" class="h-8 w-8 text-purple-400 mr-3"></i>
+                        <span class="text-xl font-bold">Compress Optimizer</span>
                     </div>
-                );
-            };
+                    <p class="text-gray-400 mb-4">
+                        The most efficient way to compress your images without losing quality. 
+                        Fast, secure, and completely free.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i data-lucide="twitter" class="h-5 w-5"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i data-lucide="github" class="h-5 w-5"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i data-lucide="linkedin" class="h-5 w-5"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Features</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Image Compression</a></li>
+                        <li><a href="#" class="hover:text-white">Batch Processing</a></li>
+                        <li><a href="#" class="hover:text-white">Quality Control</a></li>
+                        <li><a href="#" class="hover:text-white">Privacy Protection</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Support</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Compress Optimizer. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
-            // Initialize Lucide icons
-            lucide.createIcons();
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
 
-            // Render the app
-            ReactDOM.render(<App />, document.getElementById("root"));
-        </script>
-    </body>
+        // Add scroll effect to navigation
+        window.addEventListener('scroll', function() {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 100) {
+                nav.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+            } else {
+                nav.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            }
+        });
+    </script>
+</body>
 </html>
